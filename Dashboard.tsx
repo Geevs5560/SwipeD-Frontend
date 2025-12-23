@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
-import { NetworkType, CoinSymbol, WalletCardProps, Transaction, ViewState } from './types';
-import { Card, CoinBadge, NetworkBadge, Button, Logo } from './components/Shared';
-import { COINS_BY_NETWORK, COIN_LOGOS, MOCK_TRANSACTIONS } from './constants';
+import { NetworkType, CoinSymbol, WalletCardProps, Transaction, ViewState } from '../types';
+import { Card, CoinBadge, NetworkBadge, Button, Logo } from './Shared';
+import { COINS_BY_NETWORK, COIN_LOGOS, MOCK_TRANSACTIONS } from '../constants';
 import { 
   Menu, X, User as UserIcon, Shield, Send, ArrowDownLeft, 
   ShieldCheck, PlusCircle, History, FileText, QrCode, 
   Settings, Sun, Moon, Clock, ChevronRight, Eye, 
-  EyeOff, TrendingUp, MoreHorizontal, Building2, Sparkles, Palette, Search
+  EyeOff, TrendingUp, MoreHorizontal, Building2, Sparkles, Palette, Search, ExternalLink
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -83,7 +83,7 @@ const SidebarMenu = ({ isOpen, onClose, onNavigate, user }: { isOpen: boolean, o
   );
 };
 
-const TotalBalanceCard = ({ isHidden, toggleHidden }: { isHidden: boolean, toggleHidden: () => void }) => (
+const TotalBalanceCard = ({ isHidden, toggleHidden, onOpenDetails }: { isHidden: boolean, toggleHidden: () => void, onOpenDetails: () => void }) => (
   <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 dark:bg-slate-950 p-8 text-white shadow-2xl shadow-crypto-accent/30 dark:shadow-slate-950/40 mb-8 transition-all duration-500 group border border-white/10">
     <div className="absolute inset-0 bg-gradient-to-br from-crypto-accent via-slate-800 to-slate-900 opacity-90 transition-colors duration-500"></div>
     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--accent-glow),transparent_60%)]"></div>
@@ -107,17 +107,28 @@ const TotalBalanceCard = ({ isHidden, toggleHidden }: { isHidden: boolean, toggl
                     </button>
                 </div>
             </div>
-            <div className="bg-white/10 p-4 rounded-3xl backdrop-blur-xl border border-white/20 shadow-lg">
+            <button 
+              onClick={onOpenDetails}
+              className="bg-white/10 p-4 rounded-3xl backdrop-blur-xl border border-white/20 shadow-lg hover:bg-white/20 transition-all active:scale-95"
+            >
                 <Building2 size={24} className="text-white" />
-            </div>
+            </button>
         </div>
-        <div className="flex items-center gap-4 mt-8">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-white bg-white/20 px-3.5 py-2 rounded-2xl border border-white/20 backdrop-blur-md">
-                <TrendingUp size={14} className="text-white" />
-                <span>+1.8%</span>
+        <div className="flex items-center justify-between mt-8">
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-white bg-white/20 px-3.5 py-2 rounded-2xl border border-white/20 backdrop-blur-md">
+                    <TrendingUp size={14} className="text-white" />
+                    <span>+1.8%</span>
+                </div>
+                 <div className="h-4 w-px bg-white/10"></div>
+                 <span className="text-xs text-white/60 font-medium tracking-tight">Active Cryptographic Vault</span>
             </div>
-             <div className="h-4 w-px bg-white/10"></div>
-             <span className="text-xs text-white/60 font-medium tracking-tight">Active Cryptographic Vault</span>
+            <button 
+              onClick={onOpenDetails}
+              className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-white/70 hover:text-white transition-colors"
+            >
+              View Analytics <ExternalLink size={12} />
+            </button>
         </div>
     </div>
   </div>
@@ -164,8 +175,14 @@ const WalletSection: React.FC<WalletCardProps & { onAction: (action: string, coi
         {allCoins.map((item, idx) => (
           <div 
             key={`${item.network}-${item.coin}-${idx}`}
-            onClick={() => type === 'GAS' ? onAction('GAS_DEPOSITS', item.coin, item.network) : null}
-            className={`flex-shrink-0 w-44 bg-white dark:bg-slate-900/60 rounded-3xl p-5 border border-gray-100 dark:border-slate-800 shadow-sm relative group overflow-hidden transition-all ${type === 'GAS' ? 'cursor-pointer active:scale-95 ring-0 hover:ring-2 hover:ring-indigo-500/20' : ''}`}
+            onClick={() => {
+              if (type === 'GAS') {
+                onAction('GAS_DEPOSITS', item.coin, item.network);
+              } else if (type === 'SAVINGS') {
+                onAction('SAVINGS_ACCOUNT', item.coin, item.network);
+              }
+            }}
+            className={`flex-shrink-0 w-44 bg-white dark:bg-slate-900/60 rounded-3xl p-5 border border-gray-100 dark:border-slate-800 shadow-sm relative group overflow-hidden transition-all cursor-pointer active:scale-95 ring-0 hover:ring-2 ${type === 'GAS' ? 'hover:ring-indigo-500/20' : 'hover:ring-crypto-accent/20'}`}
           >
              <div className="flex justify-between items-start mb-4">
                 <CoinBadge symbol={item.coin} size="lg" />
@@ -243,9 +260,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, toggleTh
             >
               <Menu size={22} strokeWidth={2} />
             </button>
-            <div>
+            <div 
+              onClick={() => onNavigate('SAVINGS_ACCOUNT')}
+              className="cursor-pointer group"
+            >
                 <Logo className="text-xl" />
-                <p className="text-[10px] text-gray-500 dark:text-slate-500 font-bold -mt-1 tracking-widest">Savings Account</p>
+                <p className="text-[10px] text-gray-500 dark:text-slate-500 font-bold -mt-1 tracking-widest flex items-center gap-1 group-hover:text-crypto-accent transition-colors">
+                  Savings Account <ChevronRight size={10} />
+                </p>
             </div>
         </div>
         <div className="flex gap-3">
@@ -263,7 +285,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, toggleTh
         </div>
       </div>
 
-      <TotalBalanceCard isHidden={hideBalances} toggleHidden={() => setHideBalances(!hideBalances)} />
+      <TotalBalanceCard 
+        isHidden={hideBalances} 
+        toggleHidden={() => setHideBalances(!hideBalances)} 
+        onOpenDetails={() => onNavigate('SAVINGS_ACCOUNT')}
+      />
 
       <div className="grid grid-cols-4 gap-3 mb-10 px-1">
         {[
